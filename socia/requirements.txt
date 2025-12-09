@@ -1,0 +1,7 @@
+flask
+flask-session
+mysql-connector-python
+icecream
+python-dotenv
+werkzeug
+requests

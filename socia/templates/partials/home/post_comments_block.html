@@ -1,0 +1,100 @@
+{# Partial used to render the comment block for a single post.
+   Expects: post_id, comments, current_user #}
+
+{% if comments %}
+  <div class="comments">
+    <ul class="comments-list">
+      {% for c in comments %}
+        {% set comment = c.comment %}
+        {% set cu = c.user %}
+        <li class="comment">
+          <!-- Comment author avatar (with placeholder fallback) -->
+          <div class="comment-avatar">
+            {% if cu.avatar_filename %}
+              <img
+                src="{{ url_for('static', filename='uploads/avatars/' ~ cu.avatar_filename) }}"
+                alt="{{ cu.username }} avatar"
+              >
+            {% else %}
+              <div class="comment-avatar__placeholder">
+                {{ cu.username[0]|upper }}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="comment-body">
+            <!-- Display name + @username -->
+            <div class="comment-header">
+              <span class="comment-author">
+                {{ cu.display_name or cu.username }}
+              </span>
+              <span class="comment-username">
+                @{{ cu.username }}
+              </span>
+            </div>
+
+            <!-- Comment text (already validated/sanitized on backend) -->
+            <div class="comment-content">
+              {{ comment.content }}
+            </div>
+
+            <div class="comment-meta">
+              <span class="comment-time">
+                {{ comment.created_at }}
+              </span>
+
+              <!-- Only the comment owner or an admin can delete the comment -->
+              {% if current_user and (current_user.user_id == comment.user_id_fk or current_user.is_admin) %}
+                <form
+                  method="post"
+                  action="{{ url_for('comment_routes.delete_comment_route', comment_id=comment.comment_id) }}"
+                  class="comment-delete-form"
+                  data-confirm="{{ t('comment_delete_confirm') }}"
+                  onsubmit="return confirm(this.getAttribute('data-confirm'));"
+                >
+                  <button type="submit" class="comment-delete-btn">
+                    {{ t("delete") }}
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+{% if current_user %}
+  <!-- Inline comment form for logged-in users.
+       Uses MixHTML (mix-post) so new comments can be added without full page reload. -->
+  <div class="comment-form-wrapper">
+    <form
+      method="post"
+      action="{{ url_for('comment_routes.api_create_comment_mix', post_id=post_id) }}"
+      mix-post
+      class="comment-form"
+    >
+      <input
+        type="text"
+        name="content"
+        class="comment-input"
+        placeholder="{{ t('comment_placeholder') }}"
+        required
+      >
+      <button type="submit" class="btn btn-secondary comment-submit-btn">
+        {{ t("comment") }}
+      </button>
+    </form>
+  </div>
+{% else %}
+  <!-- Hint for guests: they must log in before commenting -->
+  <div class="comment-login-hint">
+    <a href="{{ url_for('auth_routes.login_get') }}" class="auth-link">
+      {{ t("login") }}
+    </a>
+    <span class="comment-login-hint__text">
+      to comment
+    </span>
+  </div>
+{% endif %}

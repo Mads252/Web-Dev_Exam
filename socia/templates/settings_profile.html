@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Translated page title through multi-language dictionary -->
+  <title>{{ t("profile_edit") }} · Socia</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+</head>
+<body class="layout-body">
+
+  <!-- Error toast displayed (MixHTML-compatible) if backend validation fails -->
+  {% if error %}
+    {% include "partials/mix/toast_error.html" %}
+  {% endif %}
+
+  <!-- Logged-in navigation bar -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <a href="{{ url_for('post_routes.home') }}" class="topbar__brand">Socia</a>
+    </div>
+
+    <div class="topbar__right">
+      <nav class="topbar__links" aria-label="User">
+        <a href="{{ url_for('post_routes.home') }}">{{ t("home_title") }}</a>
+        <a href="{{ url_for('user_routes.profile_view', username=user.username) }}">{{ t("profile_title") }}</a>
+        <a href="{{ url_for('auth_routes.logout_get') }}">{{ t("logout") }}</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="profile-main">
+    <section class="card profile-settings-card">
+
+      <!-- User identity summary for context -->
+      <header class="profile-settings-header">
+        <h1 class="profile-name">{{ t("profile_edit") }}</h1>
+        <p class="profile-username">@{{ user.username }}</p>
+      </header>
+
+      <!-- Current avatar preview with fallback placeholder -->
+      <section class="profile-settings-avatar">
+        <h2 class="profile-section__title">{{ t("profile_edit_avatar") }}</h2>
+        <div class="profile-avatar">
+          {% if user.avatar_filename %}
+            <img
+              src="{{ url_for('static', filename='uploads/avatars/' ~ user.avatar_filename) }}"
+              alt="{{ user.username }} avatar"
+            >
+          {% else %}
+            <!-- Placeholder uses the first letter of username -->
+            <div class="profile-avatar__placeholder">
+              {{ user.username[0]|upper }}
+            </div>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- Profile update form (display name, bio, avatar upload).
+           Uses multipart/form-data since avatar uploads are handled safely on backend. -->
+      <form
+        method="post"
+        action="{{ url_for('user_routes.profile_settings_post') }}"
+        enctype="multipart/form-data"
+        class="profile-settings-form"
+      >
+
+        <!-- Display name (fallback to existing value unless backend returned form data) -->
+        <div class="form-field">
+          <label for="display_name" class="form-label">Display name</label>
+          <input
+            type="text"
+            id="display_name"
+            name="display_name"
+            class="form-input"
+            value="{% if form and form.display_name is not none %}{{ form.display_name }}{% else %}{{ user.display_name or '' }}{% endif %}"
+          >
+        </div>
+
+        <!-- Bio text area -->
+        <div class="form-field">
+          <label for="bio" class="form-label">{{ t("profile_bio") }}</label>
+          <textarea
+            id="bio"
+            name="bio"
+            rows="3"
+            class="form-input form-input--textarea"
+          >{% if form and form.bio is not none %}{{ form.bio }}{% else %}{{ user.bio or '' }}{% endif %}</textarea>
+        </div>
+
+        <!-- Avatar file upload (validated in backend: file type, size, etc.) -->
+        <div class="form-field">
+          <label for="avatar" class="form-label">{{ t("profile_edit_avatar") }}</label>
+          <input
+            type="file"
+            id="avatar"
+            name="avatar"
+            accept="image/*"
+            class="form-input form-input--file"
+          >
+          <p class="form-helper">Allowed: JPG, PNG, GIF</p>
+        </div>
+
+        <!-- Save + Cancel -->
+        <div class="profile-settings-actions">
+          <button type="submit" class="btn btn-primary">
+            {{ t("profile_save") }}
+          </button>
+          <a
+            href="{{ url_for('user_routes.profile_view', username=user.username) }}"
+            class="btn btn-secondary"
+          >
+            {{ t("profile_cancel") }}
+          </a>
+        </div>
+      </form>
+
+      <!-- Account deletion section uses a dedicated route for safety
+           (avoiding accidental deletion through POST-on-refresh). -->
+      <section class="profile-settings-danger">
+        <h2 class="profile-section__title">{{ t("delete_account") }}</h2>
+        <p class="profile-bio">{{ t("delete_account_confirm_text") }}</p>
+        <a
+          href="{{ url_for('user_routes.delete_account_get') }}"
+          class="profile-delete-link"
+        >
+          {{ t("delete_account") }}
+        </a>
+      </section>
+
+      <!-- Back link to main feed -->
+      <div class="profile-back">
+        <a href="{{ url_for('post_routes.home') }}" class="auth-link">
+          {{ t("back_to_home") }}
+        </a>
+      </div>
+
+    </section>
+  </main>
+
+</body>
+</html>

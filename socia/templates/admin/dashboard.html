@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Translated title for the main admin dashboard -->
+  <title>{{ t("admin_dashboard") }} · Socia</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+
+<body class="layout-body">
+
+  <!-- Admin topbar with quick links back to the main app and logout -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <a href="{{ url_for('post_routes.home') }}" class="topbar__brand">Socia</a>
+    </div>
+
+    <div class="topbar__right">
+      <nav class="topbar__links" aria-label="Admin">
+        <a href="{{ url_for('post_routes.home') }}">
+          {{ t("back_to_home") }}
+        </a>
+        <a href="{{ url_for('auth_routes.logout_get') }}">
+          {{ t("logout") }}
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <section class="card admin-card">
+      <header class="admin-header">
+        <h1 class="admin-title">
+          {{ t("admin_dashboard") }}
+        </h1>
+        <p class="admin-subtitle">
+          System overview & moderation panel
+        </p>
+      </header>
+
+      <!-- Admin navigation tiles: entry points to all moderation tools -->
+      <div class="admin-grid">
+        <a href="{{ url_for('admin_routes.admin_users') }}" class="admin-tile">
+          <h2 class="admin-tile__title">{{ t("admin_users") }}</h2>
+          <p class="admin-tile__text">View, block & manage users</p>
+        </a>
+
+        <a href="{{ url_for('admin_routes.admin_posts') }}" class="admin-tile">
+          <h2 class="admin-tile__title">{{ t("admin_posts") }}</h2>
+          <p class="admin-tile__text">Review & moderate posts</p>
+        </a>
+
+        <!-- Link to sync translation keys from Google Sheets into the app -->
+        <a href="{{ url_for('admin_routes.get_data_from_sheet') }}" class="admin-tile">
+          <h2 class="admin-tile__title">{{ t("admin_translations") }}</h2>
+          <p class="admin-tile__text">Load & update UI languages</p>
+        </a>
+      </div>
+    </section>
+  </main>
+
+</body>
+</html>

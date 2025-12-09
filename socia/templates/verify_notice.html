@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Page title is translated dynamically through the multi-language system -->
+  <title>Socia · {{ t("verify_email_title") }}</title>
+
+  <!-- Shared auth layout styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+
+<body class="auth-body">
+
+  <main class="auth-layout">
+    <!-- Verification notice shown right after user signs up but before email is confirmed -->
+    <section class="auth-card" aria-labelledby="verify-pending-title">
+
+      <header class="auth-header" style="text-align:center;">
+
+        <!-- Visual success indicator (not green checkmark yet, since verification is pending) -->
+        <div style="
+            width:40px;
+            height:40px;
+            border-radius:50%;
+            background:#16a34a;
+            margin:0 auto 1rem auto;
+        "></div>
+
+        <h1 id="verify-pending-title" class="auth-title">
+          {{ t("verify_email_title") }} Socia
+        </h1>
+
+        <!-- Text content fully translated through the template dictionary -->
+        <p class="auth-subtitle" style="max-width: 28ch; margin:auto;">
+          {{ t("verify_email_text") }}
+        </p>
+      </header>
+
+      <div class="auth-message" style="margin-top:1.4rem;">
+        <!-- Static fallback message (English) shown alongside translated heading -->
+        <p style="text-align:center; color:#4b5563; font-size:0.96rem;">
+          Please check your inbox — you must click the verification link  
+          to activate your account.
+        </p>
+      </div>
+
+      <div class="form-actions" style="margin-top:1.8rem; text-align:center;">
+        <!-- Navigation back to login while the account is still inactive -->
+        <a
+          href="{{ url_for('auth_routes.login_get') }}"
+          class="btn btn-secondary"
+        >
+          ← {{ t("back") }} {{ t("login") }}
+        </a>
+      </div>
+
+    </section>
+  </main>
+
+</body>
+</html>

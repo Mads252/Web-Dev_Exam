@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Login title translated using the shared dictionary -->
+  <title>Socia · {{ t("login_title") }}</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+
+  <!-- MixHTML used for partial error rendering and lightweight auth flows -->
+  <script src="{{ url_for('static', filename='js/mixhtml.js') }}" defer></script>
+</head>
+<body class="auth-body">
+
+  <main class="auth-layout">
+    <section class="auth-card" aria-labelledby="login-title">
+      <header class="auth-header">
+        <h1 id="login-title" class="auth-title">
+          {{ t("login_title") }} Socia
+        </h1>
+        <p class="auth-subtitle">
+          {{ t("login_subtitle") }}
+        </p>
+      </header>
+
+      <!-- Error toast rendered when backend validation/authentication fails -->
+      {% if error %}
+        {% include "partials/mix/toast_error.html" %}
+      {% endif %}
+
+      <!-- Login form.
+           'novalidate' lets the backend control validation messages consistently. -->
+      <form
+        method="post"
+        action="{{ url_for('auth_routes.login_post') }}"
+        class="auth-form"
+        novalidate
+      >
+        <!-- Email field, keeps value if backend returns the form with an error -->
+        <div class="form-field">
+          <label for="email" class="form-label">
+            {{ t("email") }}
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            class="form-input"
+            value="{{ form.email if form and form.email }}"
+            required
+            autocomplete="email"
+            placeholder="{{ t('email') }}"
+          >
+        </div>
+
+        <!-- Password field (never pre-filled for security reasons) -->
+        <div class="form-field">
+          <label for="password" class="form-label">
+            {{ t("password") }}
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="form-input"
+            required
+            autocomplete="current-password"
+            placeholder="{{ t('password') }}"
+          >
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            {{ t("login") }}
+          </button>
+
+          <!-- Link into the password reset flow -->
+          <a
+            href="{{ url_for('auth_routes.forgot_password_get') }}"
+            class="auth-link-secondary"
+          >
+            {{ t("forgot_password") }}
+          </a>
+        </div>
+      </form>
+
+      <!-- Link to sign-up for users without an account -->
+      <p class="auth-switch">
+        {{ t("dont_have_an_account") }}
+        <a href="{{ url_for('auth_routes.signup_get') }}" class="auth-link">
+          {{ t("sign_up") }}
+        </a>
+      </p>
+    </section>
+
+    <!-- Language picker: redirects to a route that updates the session language -->
+    <div class="auth-lang-switch">
+      <form>
+        <label for="language-select" class="visually-hidden">Language</label>
+        <select
+          id="language-select"
+          onchange="if(this.value) window.location.href=this.value;"
+        >
+          {% for lang in available_languages %}
+            <option
+              value="{{ url_for('language_routes.set_language_route', lang_code=lang) }}"
+              {% if lang == current_language %}selected{% endif %}
+            >
+              {{ lang }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+  </main>
+
+</body>
+</html>

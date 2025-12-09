@@ -1,0 +1,114 @@
+{# templates/partials/home/post_item.html
+   Renders a single post in the home feed.
+   Expects: item (post + user + media + comments + like data), current_user #}
+
+{% set p = item.post %}
+{% set u = item.user %}
+{% set media_list = item.media %}
+{% set comments = item.comments %}
+
+<li class="post">
+  <article class="post-card">
+
+    <header class="post-header">
+      <!-- Avatar links to the author's profile, with placeholder fallback -->
+      <a
+        href="{{ url_for('user_routes.profile_view', username=u.username) }}"
+        class="post-avatar"
+      >
+        {% if u.avatar_filename %}
+          <img
+            src="{{ url_for('static', filename='uploads/avatars/' ~ u.avatar_filename) }}"
+            alt="{{ u.username }} avatar"
+          >
+        {% else %}
+          <div class="post-avatar__placeholder">
+            {{ u.username[0]|upper }}
+          </div>
+        {% endif %}
+      </a>
+
+      <div class="post-meta">
+        <div class="post-meta__top">
+          <!-- Display name falls back to username -->
+          <a
+            href="{{ url_for('user_routes.profile_view', username=u.username) }}"
+            class="post-author"
+          >
+            {{ u.display_name or u.username }}
+          </a>
+          <span class="post-username">@{{ u.username }}</span>
+        </div>
+
+        <!-- Timestamp rendered by backend -->
+        <div class="post-meta__time">
+          {{ p.created_at }}
+        </div>
+
+        <!-- Edit/delete actions only visible to post owner or admins -->
+        {% if current_user and (current_user.user_id == p.user_id_fk or current_user.is_admin) %}
+          <div class="post-actions">
+            <a
+              href="{{ url_for('post_routes.edit_post_get', post_id=p.post_id) }}"
+              class="post-action-link"
+            >
+              {{ t("post_edit") }}
+            </a>
+
+            <!-- Delete uses POST and a JS confirm to avoid accidental clicks -->
+            <form
+              method="post"
+              action="{{ url_for('post_routes.delete_post_route', post_id=p.post_id) }}"
+              class="post-action-form"
+              data-confirm="{{ t('post_delete_confirm') }}"
+              onsubmit="return confirm(this.getAttribute('data-confirm'));"
+            >
+              <button type="submit" class="post-action-link post-action-link--danger">
+                {{ t("post_delete") }}
+              </button>
+            </form>
+          </div>
+        {% endif %}
+      </div>
+    </header>
+
+    {% if p.content %}
+      <div class="post-content">
+        <p>{{ p.content }}</p>
+      </div>
+    {% endif %}
+
+    <!-- Optional media gallery for posts with uploaded images -->
+    {% if media_list %}
+      <div class="post-media">
+        {% for m in media_list %}
+          <div class="post-media__item">
+            <img
+              src="{{ '/' ~ m.file_path }}"
+              alt="Post image"
+            >
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <footer class="post-footer">
+      {% set like_count = item.like_count %}
+      {% set liked_by_current_user = item.liked_by_current_user %}
+      {% set post_id = p.post_id %}
+
+      <!-- Like block is a separate partial so it can be re-rendered via MixHTML -->
+      <div class="post-like" id="post-{{ p.post_id }}-like">
+        {% include "partials/home/post_like_block.html" %}
+      </div>
+
+      <!-- Comments block is also a partial, supports MixHTML updates -->
+      <div class="post-comments" id="post-{{ p.post_id }}-comments">
+        {% set comments = item.comments %}
+        {% set post_id = p.post_id %}
+        {% include "partials/home/post_comments_block.html" %}
+      </div>
+    </footer>
+
+  </article>
+</li>

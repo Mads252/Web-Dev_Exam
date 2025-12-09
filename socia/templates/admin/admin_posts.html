@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Translated title for the admin post moderation page -->
+  <title>Socia - {{ t("admin_posts") }}</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+
+<body class="layout-body">
+
+  <!-- Standard admin navigation, kept separate from user navigation -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <a href="{{ url_for('post_routes.home') }}" class="topbar__brand">Socia</a>
+    </div>
+
+    <div class="topbar__right">
+      <nav class="topbar__links" aria-label="Admin">
+        <a href="{{ url_for('admin_routes.admin_dashboard') }}">
+          {{ t("admin_dashboard") }}
+        </a>
+        <a href="{{ url_for('post_routes.home') }}">
+          {{ t("back_to_home") }}
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <section class="card admin-card">
+
+      <header class="admin-header">
+        <h1 class="admin-title">
+          {{ t("admin_posts") }}
+        </h1>
+        <p class="admin-subtitle">
+          Review and moderate posts
+        </p>
+      </header>
+
+      <div class="admin-table-wrapper">
+        {% if posts %}
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Post ID</th>
+                <th>{{ t("username") }}</th>
+                <th>{{ t("email") }}</th>
+
+                <!-- Preview of post text; truncated to avoid long table rows -->
+                <th>{{ t("home_feed_title") }}</th>
+
+                <!-- Moderation status flags -->
+                <th>Blocked</th>
+                <th>Deleted</th>
+                <th>Created</th>
+
+                <!-- Moderation action column -->
+                <th>{{ t("edit") }}</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for p in posts %}
+                <tr class="
+                  {% if p.is_deleted %}admin-row--deleted
+                  {% elif p.is_blocked %}admin-row--blocked
+                  {% endif %}
+                ">
+
+                  <!-- Basic identifiers -->
+                  <td>{{ p.post_id }}</td>
+
+                  <td>
+                    <a
+                      href="{{ url_for('user_routes.profile_view', username=p.username) }}"
+                      class="auth-link"
+                    >
+                      @{{ p.username }}
+                    </a>
+                  </td>
+
+                  <td>{{ p.email }}</td>
+
+                  <!-- Shortened text preview with ellipsis -->
+                  <td class="admin-post-content">
+                    {% if p.content %}
+                      {{ p.content[:120] }}{% if p.content|length > 120 %}…{% endif %}
+                    {% else %}
+                      <span class="admin-badge admin-badge--no">No text</span>
+                    {% endif %}
+                  </td>
+
+                  <!-- Blocked flag -->
+                  <td>
+                    {% if p.is_blocked %}
+                      <span class="admin-badge admin-badge--blocked">Blocked</span>
+                    {% else %}
+                      <span class="admin-badge admin-badge--ok">Visible</span>
+                    {% endif %}
+                  </td>
+
+                  <!-- Deleted flag (posts deleted by user cannot be moderated) -->
+                  <td>
+                    {% if p.is_deleted %}
+                      <span class="admin-badge admin-badge--deleted">Deleted</span>
+                    {% else %}
+                      <span class="admin-badge admin-badge--ok">Active</span>
+                    {% endif %}
+                  </td>
+
+                  <!-- Timestamp -->
+                  <td>{{ p.created_at }}</td>
+
+                  <!-- Moderation action buttons -->
+                  <td>
+                    <div class="admin-users-actions">
+
+                      <!-- Deleted posts cannot be toggled or blocked -->
+                      {% if not p.is_deleted %}
+                        <!-- Admin can toggle block/unblock; backend sends notification email -->
+                        <form
+                          method="post"
+                          action="{{ url_for('admin_routes.admin_toggle_post_block', post_id=p.post_id) }}"
+                          class="admin-users-action-form"
+                        >
+                          <button
+                            type="submit"
+                            class="btn {% if p.is_blocked %}btn-secondary{% else %}btn-danger{% endif %}"
+                          >
+                            {% if p.is_blocked %}
+                              {{ t("admin_unblock_post") }}
+                            {% else %}
+                              {{ t("admin_block_post") }}
+                            {% endif %}
+                          </button>
+                        </form>
+                      {% else %}
+                        <span class="admin-badge admin-badge--deleted">Deleted</span>
+                      {% endif %}
+
+                    </div>
+                  </td>
+
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+        {% else %}
+          <!-- Shown if there are no posts to moderate -->
+          <p class="admin-empty">
+            {{ t("admin_no_posts_found") }}
+          </p>
+        {% endif %}
+      </div>
+
+    </section>
+  </main>
+
+</body>
+</html>

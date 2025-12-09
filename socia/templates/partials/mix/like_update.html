@@ -1,0 +1,6 @@
+{# MixHTML response snippet used to update only the like block on the post.
+   This prevents a full page reload and replaces the HTML inside the target element. #}
+
+<mixhtml mix-update="#post-{{ post_id }}-like">
+  {% include "partials/home/post_like_block.html" %}
+</mixhtml>

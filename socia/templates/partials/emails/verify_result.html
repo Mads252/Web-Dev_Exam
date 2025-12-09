@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Translated page title shown after clicking the email verification link -->
+  <title>Socia · {{ t("verify_email_title") }}</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+
+  <!-- Included for consistency; page can be rendered via MixHTML if needed -->
+  <script src="{{ url_for('static', filename='js/mixhtml.js') }}" defer></script>
+</head>
+
+<body class="auth-body">
+  <main class="auth-layout">
+
+    <!-- Result card shown after the verification link is visited -->
+    <section class="auth-card" aria-labelledby="verify-title">
+
+      <header class="auth-header">
+        <!-- Heading style changes dynamically based on verification status -->
+        <h1 id="verify-title"
+            class="auth-title {% if status == 'ok' %}auth-title--success{% else %}auth-title--error{% endif %}">
+          {{ t("verify_email_title") }} Socia
+        </h1>
+
+        <!-- Success or error message controlled by backend verification result -->
+        <p class="auth-subtitle">
+          {% if status == "ok" %}
+            {{ t("email_verified_success") }}
+          {% else %}
+            {{ t("reset_token_invalid") }}
+          {% endif %}
+        </p>
+      </header>
+
+      <!-- Additional server-generated message (e.g., expired token, already verified) -->
+      <div class="auth-message">
+        <p>{{ message }}</p>
+      </div>
+
+      <!-- Always direct the user to login afterwards -->
+      <div class="form-actions" style="margin-top: 1.4rem;">
+        <a href="{{ url_for('auth_routes.login_get') }}" class="btn btn-primary">
+          {{ t("login") }}
+        </a>
+      </div>
+
+    </section>
+
+  </main>
+</body>
+</html>

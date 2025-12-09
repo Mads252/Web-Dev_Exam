@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Title translated using the project's multi-language dictionary -->
+  <title>Socia · {{ t("signup_title") }}</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+
+  <!-- MixHTML used for lightweight partial updates on validation errors -->
+  <script src="{{ url_for('static', filename='js/mixhtml.js') }}" defer></script>
+</head>
+<body class="auth-body">
+
+  <main class="auth-layout">
+    <section class="auth-card" aria-labelledby="signup-title">
+
+      <!-- Heading and subtitle are fully translated -->
+      <header class="auth-header">
+        <h1 id="signup-title" class="auth-title">
+          {{ t("signup_title") }}
+        </h1>
+        <p class="auth-subtitle">
+          {{ t("signup_subtitle") }}
+        </p>
+      </header>
+
+      <!-- Inline error shown through a MixHTML partial when backend validation fails -->
+      {% if error %}
+        {% include "partials/mix/toast_error.html" %}
+      {% endif %}
+
+      <!-- Sign-up form with both frontend and backend validation.
+           'novalidate' disables browser default popups so Flask can return consistent errors. -->
+      <form
+        method="post"
+        action="{{ url_for('auth_routes.signup_post') }}"
+        class="auth-form"
+        novalidate
+      >
+
+        <!-- Email field, preserves previous input if backend validation fails -->
+        <div class="form-field">
+          <label for="email" class="form-label">{{ t("email") }}</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            class="form-input"
+            value="{{ form.email if form and form.email }}"
+            required
+            autocomplete="email"
+            placeholder="{{ t('email') }}"
+          >
+        </div>
+
+        <!-- Username field -->
+        <div class="form-field">
+          <label for="username" class="form-label">{{ t("username") }}</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            class="form-input"
+            value="{{ form.username if form and form.username }}"
+            required
+            autocomplete="username"
+            placeholder="{{ t('username') }}"
+          >
+        </div>
+
+        <!-- Password field (never pre-filled for security reasons) -->
+        <div class="form-field">
+          <label for="password" class="form-label">{{ t("password") }}</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="form-input"
+            required
+            autocomplete="new-password"
+            placeholder="{{ t('password') }}"
+          >
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            {{ t("sign_up") }}
+          </button>
+        </div>
+      </form>
+
+      <!-- Link to login for users who already have an account -->
+      <p class="auth-switch">
+        {{ t("already_have_an_account") }}
+        <a href="{{ url_for('auth_routes.login_get') }}" class="auth-link">
+          {{ t("login") }}
+        </a>
+      </p>
+    </section>
+
+    <!-- Language selector using simple redirect.
+         Keeps sign-up page fully internationalized without JS frameworks. -->
+    <div class="auth-lang-switch">
+      <form>
+        <label for="language-select" class="visually-hidden">Language</label>
+        <select
+          id="language-select"
+          onchange="if(this.value) window.location.href=this.value;">
+          {% for lang in available_languages %}
+            <option
+              value="{{ url_for('language_routes.set_language_route', lang_code=lang) }}"
+              {% if lang == current_language %}selected{% endif %}
+            >
+              {{ lang }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+  </main>
+
+</body>
+</html>

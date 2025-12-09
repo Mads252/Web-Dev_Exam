@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- Simple title for email clients; most ignore advanced metadata -->
+  <title>One of your Socia posts has been blocked</title>
+</head>
+
+<body>
+  <!-- Email body kept intentionally simple for maximum client compatibility -->
+  <h2>One of your posts has been blocked</h2>
+  <p>
+    An administrator has blocked one of your posts on Socia.
+  </p>
+
+  <!-- Optional preview of the blocked post.
+       Content is sanitized server-side before inserting into the email. -->
+  {% if post_preview %}
+    <p><strong>Post preview:</strong></p>
+    <blockquote style="border-left:4px solid #ddd;padding-left:8px;color:#555;">
+      {{ post_preview }}
+    </blockquote>
+  {% endif %}
+
+  <!-- Standard guidance for moderation-related actions -->
+  <p>
+    If you believe this is a mistake, please contact support.
+  </p>
+
+  <p>Best,<br>Socia Team</p>
+</body>
+</html>

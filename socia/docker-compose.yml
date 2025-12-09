@@ -1,0 +1,48 @@
+
+services:
+  web:
+    build: .
+    container_name: socia_web
+    env_file:
+      - .env
+    depends_on:
+      - mariadb
+    ports:
+      - "5001:5000"   
+    volumes:
+      - .:/app
+    command: flask run --host=0.0.0.0 --port=5000
+
+  mariadb:
+    image: mariadb:11
+    container_name: socia_mariadb
+    restart: always
+    env_file:
+      - .env
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MYSQL_DATABASE}
+      MARIADB_USER: ${MYSQL_USER}
+      MARIADB_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3307:3306"   # så du kan connecte udefra hvis du vil
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: socia_phpmyadmin
+    restart: always
+    depends_on:
+      - mariadb
+    environment:
+      PMA_HOST: mariadb
+      PMA_USER: ${MYSQL_USER}
+      PMA_PASSWORD: ${MYSQL_PASSWORD}
+      PMA_ARBITRARY: 1
+    ports:
+      - "8080:80"     
+
+volumes:
+  db_data:

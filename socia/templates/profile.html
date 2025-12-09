@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Profile title is dynamic based on the viewed user -->
+  <title>{{ profile_user.username }} · Socia</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body class="layout-body">
+
+  <!-- Top navigation adapts depending on whether a user is logged in -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <a href="{{ url_for('post_routes.home') }}" class="topbar__brand">Socia</a>
+    </div>
+
+    <div class="topbar__right">
+      {% if current_user %}
+        <nav class="topbar__links" aria-label="User">
+          <a href="{{ url_for('post_routes.home') }}">{{ t("home_title") }}</a>
+          <a href="{{ url_for('user_routes.profile_settings_get') }}">{{ t("profile_edit") }}</a>
+          <a href="{{ url_for('auth_routes.logout_get') }}">{{ t("logout") }}</a>
+        </nav>
+      {% else %}
+        <!-- Guest navigation -->
+        <nav class="topbar__links" aria-label="Auth">
+          <a href="{{ url_for('auth_routes.login_get') }}">{{ t("login") }}</a>
+          <a href="{{ url_for('auth_routes.signup_get') }}">{{ t("sign_up") }}</a>
+        </nav>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="profile-main">
+    <section class="card profile-card">
+
+      <!-- Profile header with avatar and basic identity information -->
+      <header class="profile-header">
+        <div class="profile-avatar">
+          {% if profile_user.avatar_filename %}
+            <img
+              src="{{ url_for('static', filename='uploads/avatars/' ~ profile_user.avatar_filename) }}"
+              alt="{{ profile_user.username }} avatar"
+            >
+          {% else %}
+            <!-- Placeholder avatar uses the first letter of the username -->
+            <div class="profile-avatar__placeholder">
+              {{ profile_user.username[0]|upper }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="profile-header__info">
+          <!-- Display name falls back to username if not set -->
+          <h1 class="profile-name">
+            {{ profile_user.display_name or profile_user.username }}
+          </h1>
+
+          <p class="profile-username">@{{ profile_user.username }}</p>
+
+          <!-- Basic social stats populated from backend -->
+          <div class="profile-stats">
+            <span class="profile-stat">
+              <strong>{{ follow_stats.followers_count }}</strong>
+              <span class="profile-stat__label">{{ t("followers_label") }}</span>
+            </span>
+            <span class="profile-stat">
+              <strong>{{ follow_stats.following_count }}</strong>
+              <span class="profile-stat__label">{{ t("following_label") }}</span>
+            </span>
+          </div>
+
+          <!-- Follow / Unfollow logic with permission checks -->
+          <div class="profile-actions">
+            {% if current_user %}
+              {% if current_user.user_id == profile_user.user_id %}
+                <!-- Users can edit only their own profile -->
+                <a
+                  href="{{ url_for('user_routes.profile_settings_get') }}"
+                  class="btn btn-secondary"
+                >
+                  {{ t("profile_edit") }}
+                </a>
+              {% else %}
+                <!-- Follow/unfollow form (POST avoids accidental toggles via GET) -->
+                <form
+                  method="post"
+                  action="{{ url_for('follow_routes.follow_toggle_route', username=profile_user.username) }}"
+                >
+                  <button
+                    type="submit"
+                    class="btn {% if currently_following %}btn-secondary profile-follow-btn--following{% else %}btn-primary{% endif %}"
+                  >
+                    {% if currently_following %}
+                      {{ t("unfollow") }}
+                    {% else %}
+                      {{ t("follow") }}
+                    {% endif %}
+                  </button>
+                </form>
+              {% endif %}
+            {% else %}
+              <!-- Guests must log in before interacting -->
+              <a href="{{ url_for('auth_routes.login_get') }}" class="auth-link">
+                {{ t("login") }}
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </header>
+
+      <!-- Bio section -->
+      <section class="profile-section">
+        <h2 class="profile-section__title">{{ t("profile_bio") }}</h2>
+
+        <!-- Shows user bio or fallback text if empty -->
+        <p class="profile-bio">
+          {% if profile_user.bio %}
+            {{ profile_user.bio }}
+          {% else %}
+            No bio yet.
+          {% endif %}
+        </p>
+      </section>
+    </section>
+
+    <!-- Navigation back to home feed -->
+    <div class="profile-back">
+      <a href="{{ url_for('post_routes.home') }}" class="auth-link">
+        {{ t("back_to_home") }}
+      </a>
+    </div>
+
+  </main>
+
+</body>
+</html>

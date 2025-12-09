@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Translated title for the admin user management page -->
+  <title>Socia - {{ t("admin_users") }}</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="layout-body">
+
+  <!-- Admin topbar with links to dashboard and main feed -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <a href="{{ url_for('post_routes.home') }}" class="topbar__brand">Socia</a>
+    </div>
+
+    <div class="topbar__right">
+      <nav class="topbar__links" aria-label="Admin">
+        <a href="{{ url_for('admin_routes.admin_dashboard') }}">
+          {{ t("admin_dashboard") }}
+        </a>
+        <a href="{{ url_for('post_routes.home') }}">
+          {{ t("back_to_home") }}
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <section class="card admin-card">
+      <header class="admin-header">
+        <h1 class="admin-title">
+          {{ t("admin_users") }}
+        </h1>
+        <p class="admin-subtitle">
+          Manage users and blocked accounts
+        </p>
+      </header>
+
+      <div class="admin-table-wrapper">
+        {% if users %}
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>{{ t("username") }}</th>
+                <th>{{ t("email") }}</th>
+                <th>Display name</th>
+                <th>Admin</th>
+                <th>Blocked</th>
+                <th>Deleted</th>
+                <th>{{ t("edit") }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for u in users %}
+                <!-- Row styling reflects user status (blocked / deleted) -->
+                <tr class="
+                  {% if u.is_deleted %}admin-row--deleted{% elif u.is_blocked %}admin-row--blocked{% endif %}
+                ">
+                  <td>@{{ u.username }}</td>
+                  <td>{{ u.email }}</td>
+                  <td>{{ u.display_name or '' }}</td>
+
+                  <!-- Admin badge so admins are clearly distinguished -->
+                  <td>
+                    {% if u.is_admin %}
+                      <span class="admin-badge admin-badge--admin">Admin</span>
+                    {% else %}
+                      <span class="admin-badge admin-badge--no">No</span>
+                    {% endif %}
+                  </td>
+
+                  <!-- Blocked status -->
+                  <td>
+                    {% if u.is_blocked %}
+                      <span class="admin-badge admin-badge--blocked">Blocked</span>
+                    {% else %}
+                      <span class="admin-badge admin-badge--ok">Active</span>
+                    {% endif %}
+                  </td>
+
+                  <!-- Deleted status (soft delete handled in backend) -->
+                  <td>
+                    {% if u.is_deleted %}
+                      <span class="admin-badge admin-badge--deleted">Deleted</span>
+                    {% else %}
+                      <span class="admin-badge admin-badge--ok">Active</span>
+                    {% endif %}
+                  </td>
+
+                  <!-- Admin actions: block/unblock, with safeguards -->
+                  <td>
+                    <div class="admin-users-actions">
+                      {% if not u.is_deleted %}
+                        {% if not u.is_admin %}
+                          <!-- Admin can block/unblock users; backend also sends notification email -->
+                          <form
+                            method="post"
+                            action="{{ url_for('admin_routes.admin_toggle_user_block', user_id=u.user_id) }}"
+                            class="admin-users-action-form"
+                          >
+                            <button
+                              type="submit"
+                              class="btn {% if u.is_blocked %}btn-secondary{% else %}btn-danger{% endif %}"
+                            >
+                              {% if u.is_blocked %}
+                                {{ t("admin_unblock_user") }}
+                              {% else %}
+                                {{ t("admin_block_user") }}
+                              {% endif %}
+                            </button>
+                          </form>
+                        {% else %}
+                          <!-- Admin accounts cannot be blocked from this view -->
+                          <span class="admin-badge admin-badge--admin">Admin</span>
+                        {% endif %}
+                      {% else %}
+                        <span class="admin-badge admin-badge--deleted">Deleted</span>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <!-- Empty state when there are no users (filtered) to show -->
+          <p class="admin-empty">
+            {{ t("admin_no_users_found") }}
+          </p>
+        {% endif %}
+      </div>
+    </section>
+  </main>
+
+</body>
+</html>

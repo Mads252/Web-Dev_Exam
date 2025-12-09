@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Translated page title for the account deletion flow -->
+  <title>Socia · {{ t("delete_account") }}</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body class="layout-body">
+
+  <!-- Global error toast if backend validation or checks fail -->
+  {% if error %}
+    {% include "partials/mix/toast_error.html" %}
+  {% endif %}
+
+  <!-- Standard logged-in topbar navigation -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <a href="{{ url_for('post_routes.home') }}" class="topbar__brand">Socia</a>
+    </div>
+
+    <div class="topbar__right">
+      <nav class="topbar__links" aria-label="User">
+        <a href="{{ url_for('post_routes.home') }}">{{ t("home_title") }}</a>
+        <a href="{{ url_for('user_routes.profile_settings_get') }}">{{ t("profile_edit") }}</a>
+        <a href="{{ url_for('auth_routes.logout_get') }}">{{ t("logout") }}</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="profile-main">
+    <!-- Dedicated card for the destructive "delete account" action -->
+    <section class="card profile-settings-card profile-delete-card">
+      <header class="profile-settings-header">
+        <h1 class="profile-name">
+          {{ t("delete_account_confirm_title") }}
+        </h1>
+        <p class="profile-username">
+          @{{ user.username }}
+        </p>
+      </header>
+
+      <section class="profile-settings-danger">
+        <!-- Main warning text from the translation dictionary -->
+        <p class="profile-delete-warning">
+          {{ t("delete_account_confirm_text") }}
+        </p>
+        <!-- Extra static warning to underline that this is permanent -->
+        <p class="profile-delete-warning-small">
+          This action is permanent and cannot be easily undone.
+        </p>
+
+        <!-- Destructive action form.
+             Uses POST to avoid accidental deletions via links/GET. -->
+        <form
+          method="post"
+          action="{{ url_for('user_routes.delete_account_post') }}"
+          class="profile-delete-form"
+          data-confirm="{{ t('delete_account_confirm_title') }}"
+          onsubmit="return confirm(this.getAttribute('data-confirm'));"
+        >
+          <!-- Button styled as a danger action to highlight risk -->
+          <button type="submit" class="btn btn-danger profile-delete-btn">
+            {{ t("delete_account_button") }}
+          </button>
+        </form>
+
+        <!-- Safe way out: cancel and go back to profile settings instead -->
+        <div class="profile-delete-cancel">
+          <a
+            href="{{ url_for('user_routes.profile_settings_get') }}"
+            class="btn btn-secondary"
+          >
+            {{ t("profile_cancel") }}
+          </a>
+        </div>
+      </section>
+
+      <!-- Extra navigation back to the home feed -->
+      <div class="profile-back">
+        <a href="{{ url_for('post_routes.home') }}" class="auth-link">
+          {{ t("back_to_home") }}
+        </a>
+      </div>
+    </section>
+  </main>
+
+</body>
+</html>

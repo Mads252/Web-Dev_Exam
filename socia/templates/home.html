@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Home feed title translated using the shared dictionary -->
+  <title>Socia - {{ t("home_title") }}</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+  <!-- MixHTML powers the no-reload interactions (new posts, likes, etc.) -->
+  <script src="{{ url_for('static', filename='js/mixhtml.js') }}" defer></script>
+
+  <!-- Live user search in the top bar (AJAX-based) -->
+  <script src="{{ url_for('static', filename='js/search.js') }}" defer></script>
+</head>
+<body class="layout-body">
+
+  <!-- Global error toast (MixHTML-compatible) shown when backend validation fails -->
+  {% if error %}
+    {% include "partials/mix/toast_error.html" %}
+  {% endif %}
+
+  <!-- Main application topbar: brand, search, and user/auth navigation -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <a href="{{ url_for('post_routes.home') }}" class="topbar__brand">Socia</a>
+    </div>
+
+    <!-- Centered search bar with live user search results -->
+    <div class="topbar__center">
+      <form id="frm_search" class="search" onsubmit="return false;">
+        <label for="txt_search_for" class="visually-hidden">
+          {{ t("search_label") }}
+        </label>
+        <input
+          type="text"
+          id="txt_search_for"
+          name="search_for"
+          class="search__input"
+          placeholder="{{ t('search_placeholder') }}"
+          autocomplete="off"
+        >
+        <!-- search.js fills this container with results via AJAX -->
+        <div id="search_results" class="search__results d-none"></div>
+      </form>
+    </div>
+
+    <div class="topbar__right">
+      {% if current_user %}
+        <!-- Logged-in user summary + navigation -->
+        <div class="topbar__user">
+          <span class="topbar__username-label">{{ t("username") }}</span>
+          <strong class="topbar__username">@{{ current_user.username }}</strong>
+        </div>
+        <nav class="topbar__links" aria-label="User">
+          <a href="{{ url_for('user_routes.profile_view', username=current_user.username) }}">
+            {{ t("profile_title") }}
+          </a>
+          <a href="{{ url_for('user_routes.profile_settings_get') }}">
+            {{ t("profile_edit") }}
+          </a>
+          <a href="{{ url_for('auth_routes.logout_get') }}">
+            {{ t("logout") }}
+          </a>
+        </nav>
+
+        <!-- Quick access to admin dashboard if the user is an admin -->
+        {% if current_user.is_admin %}
+          <a
+            href="{{ url_for('admin_routes.admin_dashboard') }}"
+            class="topbar__admin-link"
+          >
+            {{ t("admin_dashboard") }}
+          </a>
+        {% endif %}
+      {% else %}
+        <!-- Guest navigation -->
+        <nav class="topbar__links" aria-label="Auth">
+          <a href="{{ url_for('auth_routes.login_get') }}">
+            {{ t("login") }}
+          </a>
+          <a href="{{ url_for('auth_routes.signup_get') }}">
+            {{ t("sign_up") }}
+          </a>
+        </nav>
+      {% endif %}
+    </div>
+
+  </header>
+
+  <main class="home-main">
+    <section class="home-column">
+
+      <!-- Page title and short welcome text (translated) -->
+      <header class="home-header">
+        <h1 class="home-title">
+          {{ t("home_title") }}
+        </h1>
+        <p class="home-subtitle">
+          {{ t("home_welcome") }}
+        </p>
+      </header>
+
+      {% if current_user %}
+        <!-- New post composer for logged-in users.
+             Uses MixHTML (mix-post attribute) for no full page reload. -->
+        <section class="card card--new-post" aria-labelledby="new-post-title">
+          <h2 id="new-post-title" class="card__title">
+            {{ t("new_post_button") }}
+          </h2>
+
+          <form
+            method="post"
+            action="{{ url_for('post_routes.api_create_post_mix') }}"
+            enctype="multipart/form-data"
+            mix-post
+            class="new-post-form"
+          >
+            <div class="form-field">
+              <label for="content" class="form-label">
+                {{ t("new_post_placeholder") }}
+              </label>
+              <textarea
+                id="content"
+                name="content"
+                rows="3"
+                class="form-input form-input--textarea"
+                placeholder="{{ t('new_post_placeholder') }}"
+              >{{ form.content if form and form.content }}</textarea>
+            </div>
+
+            <!-- Optional media upload; validation and file handling is done in the backend -->
+            <div class="form-field">
+              <label for="media" class="form-label">
+                {{ t("new_post_add_media") }}
+              </label>
+              <input
+                type="file"
+                id="media"
+                name="media"
+                accept="image/*"
+                multiple
+                class="form-input form-input--file"
+              >
+              <p class="form-helper">
+                You can upload multiple images (JPG, PNG, GIF)
+              </p>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                {{ t("new_post_button") }}
+              </button>
+            </div>
+          </form>
+        </section>
+      {% else %}
+        <!-- Call-to-action card for guests -->
+        <section class="card card--cta">
+          <h2 class="card__title">
+            {{ t("home_title") }}
+          </h2>
+          <p class="card__text">
+            {{ t("home_welcome") }}
+          </p>
+          <div class="card__actions">
+            <a href="{{ url_for('auth_routes.login_get') }}" class="btn btn-primary">
+              {{ t("login") }}
+            </a>
+            <a href="{{ url_for('auth_routes.signup_get') }}" class="btn btn-secondary">
+              {{ t("sign_up") }}
+            </a>
+          </div>
+        </section>
+      {% endif %}
+
+      <!-- Main feed area: "All" vs "Following" tabs -->
+      <section class="card card--feed">
+        <header class="feed-header">
+          <h2 class="card__title">{{ t("home_feed_title") }}</h2>
+          <nav class="feed-tabs" aria-label="{{ t('home_feed_title') }}">
+            <!-- Public feed with all posts -->
+            <a
+              href="{{ url_for('post_routes.home', feed='all') }}"
+              class="feed-tab {% if feed == 'all' %}feed-tab--active{% endif %}"
+            >
+              {{ t("home_feed_all_tab") }}
+            </a>
+
+            {% if current_user %}
+              <!-- Personalized feed with posts from followed users -->
+              <a
+                href="{{ url_for('post_routes.home', feed='following') }}"
+                class="feed-tab {% if feed == 'following' %}feed-tab--active{% endif %}"
+              >
+                {{ t("home_feed_following_tab") }}
+              </a>
+            {% endif %}
+          </nav>
+        </header>
+
+        <!-- Feed content rendered from backend result list.
+             Each post item is a partial for reuse and cleaner templates. -->
+        {% if posts %}
+          <ul id="feed" class="feed-list">
+            {% for item in posts %}
+              {% include "partials/home/post_item.html" %}
+            {% endfor %}
+          </ul>
+        {% else %}
+          <!-- Empty state text depends on which feed is active -->
+          <p class="feed-empty">
+            {% if feed == 'following' %}
+              {{ t("home_no_posts_following") }}
+            {% else %}
+              {{ t("home_no_posts") }}
+            {% endif %}
+          </p>
+        {% endif %}
+      </section>
+
+      <!-- Extra quick link to admin dashboard inside the feed column -->
+      {% if current_user and current_user.is_admin %}
+        <section class="card card--admin">
+          <a href="{{ url_for('admin_routes.admin_dashboard') }}" class="auth-link">
+            {{ t("admin_dashboard") }}
+          </a>
+        </section>
+      {% endif %}
+    </section>
+
+    <!-- Sidebar: language picker for switching UI language -->
+    <aside class="home-sidebar">
+      <div class="lang-switch">
+        <form>
+          <label for="language-select" class="visually-hidden">Language</label>
+          <select
+            id="language-select"
+            onchange="if(this.value) window.location.href=this.value;"
+          >
+            {% for lang in available_languages %}
+              <option
+                value="{{ url_for('language_routes.set_language_route', lang_code=lang) }}
+"
+                {% if lang == current_language %}selected{% endif %}
+              >
+                {{ lang }}
+              </option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Container used by MixHTML and toast partials for temporary messages -->
+  <div id="toast"></div>
+</body>
+</html>

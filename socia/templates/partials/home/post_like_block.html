@@ -1,0 +1,37 @@
+{# Renders the like/unlike button + like count.
+   Expects: post_id, like_count, liked_by_current_user, current_user #}
+
+<div class="post-like-block">
+
+  <!-- MixHTML form: toggles like/unlike without reloading the page -->
+  <form
+    method="post"
+    action="{{ url_for('like_routes.like_toggle_mix_route', post_id=post_id) }}"
+    mix-post
+    class="post-like-form"
+  >
+    {% if current_user %}
+      <!-- Button reflects current state: active style when user has liked the post -->
+      <button type="submit"
+              class="post-like-btn {% if liked_by_current_user %}post-like-btn--active{% endif %}">
+        {% if liked_by_current_user %}
+           {{ t("unlike") }}
+        {% else %}
+           {{ t("like") }}
+        {% endif %}
+      </button>
+    {% else %}
+      <!-- Guests cannot like posts; they are redirected to login instead -->
+      <a href="{{ url_for('auth_routes.login_get') }}"
+         class="post-like-btn post-like-btn--link">
+         {{ t("like") }}
+      </a>
+    {% endif %}
+  </form>
+
+  <!-- The like counter is re-rendered when MixHTML updates this block -->
+  <span class="post-like-count">
+    {{ like_count }} {{ t("likes_label") }}
+  </span>
+
+</div>

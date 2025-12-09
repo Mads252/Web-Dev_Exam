@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Translated page title for the edit post flow -->
+  <title>{{ t("post_edit") }} · Socia</title>
+
+  <!-- Reuse shared layout + profile/admin styles for consistent UI -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+</head>
+<body class="layout-body">
+
+  <!-- Global error toast, used if backend validation fails -->
+  {% if error %}
+    {% include "partials/mix/toast_error.html" %}
+  {% endif %}
+
+  <!-- Simple topbar with navigation back to home/profile/auth -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <a href="{{ url_for('post_routes.home') }}" class="topbar__brand">Socia</a>
+    </div>
+
+    <div class="topbar__right">
+      <nav class="topbar__links" aria-label="User">
+        <a href="{{ url_for('post_routes.home') }}">
+          {{ t("home_title") }}
+        </a>
+        {% if current_user %}
+          <a href="{{ url_for('user_routes.profile_view', username=current_user.username) }}">
+            {{ t("profile_title") }}
+          </a>
+          <a href="{{ url_for('auth_routes.logout_get') }}">
+            {{ t("logout") }}
+          </a>
+        {% else %}
+          <a href="{{ url_for('auth_routes.login_get') }}">
+            {{ t("login") }}
+          </a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <main class="profile-main">
+    <section class="card">
+      <header class="profile-settings-header">
+        <!-- Clear context: the user is editing an existing post -->
+        <h1 class="profile-name">
+          {{ t("post_edit") }}
+        </h1>
+      </header>
+
+      <!-- Edit form uses POST and includes the post_id in the URL.
+           Permissions are enforced in the backend (only owner/admin can edit). -->
+      <form
+        method="post"
+        action="{{ url_for('post_routes.edit_post_post', post_id=post.post_id) }}"
+        class="profile-settings-form"
+      >
+        <div class="form-field">
+          <label for="content" class="form-label">
+            {{ t("new_post_placeholder") }}
+          </label>
+          <!-- Existing content is pre-filled so the user can edit it -->
+          <textarea
+            id="content"
+            name="content"
+            rows="4"
+            class="form-input form-input--textarea"
+          >{{ post.content }}</textarea>
+        </div>
+
+        <div class="profile-settings-actions">
+          <button type="submit" class="btn btn-primary">
+            {{ t("update") }}
+          </button>
+          <!-- Cancel simply navigates back to the feed without changing the post -->
+          <a
+            href="{{ url_for('post_routes.home') }}"
+            class="btn btn-secondary"
+          >
+            {{ t("cancel") }}
+          </a>
+        </div>
+      </form>
+
+      <!-- Extra back-to-home link below the form -->
+      <div class="profile-back">
+        <a href="{{ url_for('post_routes.home') }}" class="auth-link">
+          {{ t("back_to_home") }}
+        </a>
+      </div>
+    </section>
+  </main>
+
+</body>
+</html>
